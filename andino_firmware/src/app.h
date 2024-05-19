@@ -39,6 +39,8 @@
 #include "pwm_out_arduino.h"
 #include "serial_stream_arduino.h"
 #include "shell.h"
+#include "MSMotorShield.h"
+
 
 namespace andino {
 
@@ -98,16 +100,18 @@ class App {
   static Shell shell_;
 
   /// Left wheel motor.
-  static DigitalOutArduino left_motor_enable_digital_out_;
-  static PwmOutArduino left_motor_forward_pwm_out_;
-  static PwmOutArduino left_motor_backward_pwm_out_;
-  static Motor left_motor_;
+  // static DigitalOutArduino left_motor_enable_digital_out_;
+  // static PwmOutArduino left_motor_forward_pwm_out_;
+  // static PwmOutArduino left_motor_backward_pwm_out_;
+  static MS_DCMotor left_motor_;
+  static MS_DCMotor left_motor2_;
 
   /// Right wheel motor.
-  static DigitalOutArduino right_motor_enable_digital_out_;
-  static PwmOutArduino right_motor_forward_pwm_out_;
-  static PwmOutArduino right_motor_backward_pwm_out_;
-  static Motor right_motor_;
+  // static DigitalOutArduino right_motor_enable_digital_out_;
+  // static PwmOutArduino right_motor_forward_pwm_out_;
+  // static PwmOutArduino right_motor_backward_pwm_out_;
+  static MS_DCMotor right_motor_;
+  static MS_DCMotor right_motor2_;
 
   /// Left wheel encoder.
   static InterruptInArduino left_encoder_channel_a_interrupt_in_;

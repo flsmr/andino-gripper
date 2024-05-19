@@ -81,24 +81,34 @@
 #include "pwm_out_arduino.h"
 #include "serial_stream_arduino.h"
 #include "shell.h"
+#include "MSMotorShield.h"
 
 namespace andino {
+
+#define FORWARD 1
+#define BACKWARD 2
+#define BRAKE 3
+#define RELEASE 4
 
 SerialStreamArduino App::serial_stream_;
 
 Shell App::shell_;
 
-DigitalOutArduino App::left_motor_enable_digital_out_(Hw::kLeftMotorEnableGpioPin);
-PwmOutArduino App::left_motor_forward_pwm_out_(Hw::kLeftMotorForwardGpioPin);
-PwmOutArduino App::left_motor_backward_pwm_out_(Hw::kLeftMotorBackwardGpioPin);
-Motor App::left_motor_(&left_motor_enable_digital_out_, &left_motor_forward_pwm_out_,
-                       &left_motor_backward_pwm_out_);
+// DigitalOutArduino App::left_motor_enable_digital_out_(Hw::kLeftMotorEnableGpioPin);
+// PwmOutArduino App::left_motor_forward_pwm_out_(Hw::kLeftMotorForwardGpioPin);
+// PwmOutArduino App::left_motor_backward_pwm_out_(Hw::kLeftMotorBackwardGpioPin);
+// Motor App::left_motor_(&left_motor_enable_digital_out_, &left_motor_forward_pwm_out_,
+//                        &left_motor_backward_pwm_out_);
+MS_DCMotor App::left_motor_(1);
+MS_DCMotor App::left_motor2_(2);
 
-DigitalOutArduino App::right_motor_enable_digital_out_(Hw::kRightMotorEnableGpioPin);
-PwmOutArduino App::right_motor_forward_pwm_out_(Hw::kRightMotorForwardGpioPin);
-PwmOutArduino App::right_motor_backward_pwm_out_(Hw::kRightMotorBackwardGpioPin);
-Motor App::right_motor_(&right_motor_enable_digital_out_, &right_motor_forward_pwm_out_,
-                        &right_motor_backward_pwm_out_);
+// DigitalOutArduino App::right_motor_enable_digital_out_(Hw::kRightMotorEnableGpioPin);
+// PwmOutArduino App::right_motor_forward_pwm_out_(Hw::kRightMotorForwardGpioPin);
+// PwmOutArduino App::right_motor_backward_pwm_out_(Hw::kRightMotorBackwardGpioPin);
+// Motor App::right_motor_(&right_motor_enable_digital_out_, &right_motor_forward_pwm_out_,
+//                         &right_motor_backward_pwm_out_);
+MS_DCMotor App::right_motor_(3);
+MS_DCMotor App::right_motor2_(4);
 
 InterruptInArduino App::left_encoder_channel_a_interrupt_in_(Hw::kLeftEncoderChannelAGpioPin);
 InterruptInArduino App::left_encoder_channel_b_interrupt_in_(Hw::kLeftEncoderChannelBGpioPin);
@@ -132,10 +142,10 @@ void App::setup() {
   left_encoder_.begin();
   right_encoder_.begin();
 
-  left_motor_.begin();
-  left_motor_.enable(true);
-  right_motor_.begin();
-  right_motor_.enable(true);
+  // left_motor_.begin();
+  // left_motor_.enable(true);
+  // right_motor_.begin();
+  // right_motor_.enable(true);
 
   left_pid_controller_.reset(left_encoder_.read());
   right_pid_controller_.reset(right_encoder_.read());
@@ -185,19 +195,68 @@ void App::loop() {
 void App::adjust_motors_speed() {
   int left_motor_speed = 0;
   int right_motor_speed = 0;
+  static constexpr int kMinSpeed{0};
+  static constexpr int kMaxSpeed{255};
   left_pid_controller_.compute(left_encoder_.read(), left_motor_speed);
   right_pid_controller_.compute(right_encoder_.read(), right_motor_speed);
   if (left_pid_controller_.enabled()) {
-    left_motor_.set_speed(left_motor_speed);
+    bool forward = true;
+    if (left_motor_speed < kMinSpeed) {
+      left_motor_speed = -left_motor_speed;
+      forward = false;
+    }
+    if (left_motor_speed > kMaxSpeed) {
+      left_motor_speed = kMaxSpeed;
+    }
+
+    // The motor speed is controlled by sending a PWM wave to the corresponding pin.
+    if (forward) {
+      left_motor_.setSpeed(static_cast<uint8_t>(left_motor_speed));
+      left_motor_.run(FORWARD);
+      left_motor2_.setSpeed(static_cast<uint8_t>(left_motor_speed));
+      left_motor2_.run(FORWARD);
+    } else {
+      left_motor_.setSpeed(static_cast<uint8_t>(left_motor_speed));
+      left_motor_.run(BACKWARD);
+      left_motor2_.setSpeed(static_cast<uint8_t>(left_motor_speed));
+      left_motor2_.run(BACKWARD);
+    }
   }
   if (right_pid_controller_.enabled()) {
-    right_motor_.set_speed(right_motor_speed);
+    bool forward = true;
+    if (right_motor_speed < kMinSpeed) {
+      right_motor_speed = -right_motor_speed;
+      forward = false;
+    }
+    if (right_motor_speed > kMaxSpeed) {
+      right_motor_speed = kMaxSpeed;
+    }
+
+    // The motor speed is controlled by sending a PWM wave to the corresponding pin.
+    if (forward) {
+      right_motor_.setSpeed(static_cast<uint8_t>(right_motor_speed));
+      right_motor_.run(FORWARD);
+      right_motor2_.setSpeed(static_cast<uint8_t>(right_motor_speed));
+      right_motor2_.run(FORWARD);
+    } else {
+      right_motor_.setSpeed(static_cast<uint8_t>(right_motor_speed));
+      right_motor_.run(BACKWARD);
+      right_motor2_.setSpeed(static_cast<uint8_t>(right_motor_speed));
+      right_motor2_.run(BACKWARD);
+    }
   }
 }
 
 void App::stop_motors() {
-  left_motor_.set_speed(0);
-  right_motor_.set_speed(0);
+  left_motor_.setSpeed(0);
+  right_motor_.setSpeed(0);
+  left_motor2_.setSpeed(0);
+  right_motor2_.setSpeed(0);
+  left_motor_.run(RELEASE);
+  right_motor_.run(RELEASE);
+  left_motor2_.run(RELEASE);
+  right_motor2_.run(RELEASE);
+
   left_pid_controller_.disable();
   right_pid_controller_.disable();
 }
@@ -247,8 +306,14 @@ void App::cmd_set_motors_speed_cb(int argc, char** argv) {
   // Reset the auto stop timer.
   last_set_motors_speed_cmd_ = millis();
   if (left_motor_speed == 0 && right_motor_speed == 0) {
-    left_motor_.set_speed(0);
-    right_motor_.set_speed(0);
+    left_motor_.setSpeed(0);
+    right_motor_.setSpeed(0);
+    left_motor2_.setSpeed(0);
+    right_motor2_.setSpeed(0);
+    left_motor_.run(RELEASE);
+    right_motor_.run(RELEASE);
+    left_motor2_.run(RELEASE);
+    right_motor2_.run(RELEASE);
     left_pid_controller_.reset(left_encoder_.read());
     right_pid_controller_.reset(right_encoder_.read());
     left_pid_controller_.disable();
@@ -276,10 +341,18 @@ void App::cmd_set_motors_pwm_cb(int argc, char** argv) {
   left_pid_controller_.reset(left_encoder_.read());
   right_pid_controller_.reset(right_encoder_.read());
   // Sneaky way to temporarily disable the PID.
+  Serial.println(left_motor_pwm);
+  Serial.println(right_motor_pwm);
   left_pid_controller_.disable();
   right_pid_controller_.disable();
-  left_motor_.set_speed(left_motor_pwm);
-  right_motor_.set_speed(right_motor_pwm);
+  left_motor_.setSpeed(static_cast<uint8_t>(left_motor_pwm));
+  right_motor_.setSpeed(static_cast<uint8_t>(right_motor_pwm));
+  left_motor2_.setSpeed(static_cast<uint8_t>(left_motor_pwm));
+  right_motor2_.setSpeed(static_cast<uint8_t>(right_motor_pwm));
+  left_motor_.run(FORWARD);
+  right_motor_.run(FORWARD);
+  left_motor2_.run(FORWARD);
+  right_motor2_.run(FORWARD);
   Serial.println("OK");
 }
 
