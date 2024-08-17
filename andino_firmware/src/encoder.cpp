@@ -74,14 +74,19 @@ constexpr int8_t Encoder::kTicksDelta[];
 
 const InterruptIn::InterruptCallback Encoder::kCallbacks[kInstancesMax] = {callback_0, callback_1};
 
+// Dirty Hack: As both motors encoders are attached to the same port (analog pins A0-A3)
+// and only one interrupt service is available for each port, we need to call the callback
+// of both instances in each interrupt service routine.
 void Encoder::callback_0() {
   if (Encoder::instances_[0] != nullptr) {
     Encoder::instances_[0]->callback();
+    Encoder::instances_[1]->callback(); // see above
   }
 }
 
 void Encoder::callback_1() {
   if (Encoder::instances_[1] != nullptr) {
+    Encoder::instances_[0]->callback(); // see above
     Encoder::instances_[1]->callback();
   }
 }
