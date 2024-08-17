@@ -98,8 +98,8 @@ void Encoder::begin() {
 
   channel_a_interrupt_in_->begin();
   channel_a_interrupt_in_->attach(kCallbacks[instance_count_]);
-  // channel_b_interrupt_in_->begin();
-  // channel_b_interrupt_in_->attach(kCallbacks[instance_count_]);
+  channel_b_interrupt_in_->begin();
+  channel_b_interrupt_in_->attach(kCallbacks[instance_count_]);
 
   instances_[instance_count_] = this;
   instance_count_++;
@@ -112,11 +112,10 @@ void Encoder::reset() { count_ = 0L; }
 void Encoder::callback() {
   // Read the current channels state into the lowest 2 bits of the encoder state.
   state_ <<= 2;
-  state_ |= /*(channel_b_interrupt_in_->read() << 1) | */channel_a_interrupt_in_->read();
+  state_ |= (channel_b_interrupt_in_->read() << 1) | channel_a_interrupt_in_->read();
 
   // Update the encoder count accordingly.
-  count_++;
-  // count_ += kTicksDelta[(state_ & 0x0F)];
+  count_ += kTicksDelta[(state_ & 0x0F)];
 }
 
 }  // namespace andino

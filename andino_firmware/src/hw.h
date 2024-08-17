@@ -33,18 +33,16 @@ namespace andino {
 
 /// @brief Hardware configuration.
 struct Hw {
-  /// @brief Left encoder channel A pin. Connected to PD2 (digital pin 2).
-  static constexpr int kLeftEncoderChannelAGpioPin{2};
-  /// @brief Left encoder channel B pin. Connected to PD3 (digital pin 3).
-  // static constexpr int kLeftEncoderChannelBGpioPin{3};
-  static constexpr int kLeftEncoderChannelBGpioPin{14}; // not used, A0
+  /// @brief Left encoder channel A pin. Connected to PC0 (digital pin 14, analog pin A0).
+  static constexpr int kLeftEncoderChannelAGpioPin{14};
+  /// @brief Left encoder channel B pin. Connected to PC1 (digital pin 15, analog pin A1).
+  static constexpr int kLeftEncoderChannelBGpioPin{15};
+
 
   /// @brief Right encoder channel A pin. Connected to PC2 (digital pin 16, analog pin A2).
-  // static constexpr int kRightEncoderChannelAGpioPin{16};
-  static constexpr int kRightEncoderChannelAGpioPin{10};
+  static constexpr int kRightEncoderChannelAGpioPin{16};
   /// @brief Right encoder channel B pin. Connected to PC3 (digital pin 17, analog pin A3).
-  // static constexpr int kRightEncoderChannelBGpioPin{17};
-  static constexpr int kRightEncoderChannelBGpioPin{15}; // not used, A1
+  static constexpr int kRightEncoderChannelBGpioPin{17};
 
   /// @brief Left motor driver backward pin. Connected to PD6 (digital pin 6).
   // static constexpr int kLeftMotorBackwardGpioPin{6};

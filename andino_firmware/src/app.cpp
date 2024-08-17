@@ -195,55 +195,15 @@ void App::loop() {
 void App::adjust_motors_speed() {
   int left_motor_speed = 0;
   int right_motor_speed = 0;
-  static constexpr int kMinSpeed{0};
   static constexpr int kMaxSpeed{255};
   left_pid_controller_.compute(left_encoder_.read(), left_motor_speed);
   right_pid_controller_.compute(right_encoder_.read(), right_motor_speed);
   if (left_pid_controller_.enabled()) {
-    bool forward = true;
-    if (left_motor_speed < kMinSpeed) {
-      left_motor_speed = -left_motor_speed;
-      forward = false;
-    }
-    if (left_motor_speed > kMaxSpeed) {
-      left_motor_speed = kMaxSpeed;
-    }
-
-    // The motor speed is controlled by sending a PWM wave to the corresponding pin.
-    if (forward) {
-      left_motor_.setSpeed(static_cast<uint8_t>(left_motor_speed));
-      left_motor_.run(FORWARD);
-      left_motor2_.setSpeed(static_cast<uint8_t>(left_motor_speed));
-      left_motor2_.run(FORWARD);
-    } else {
-      left_motor_.setSpeed(static_cast<uint8_t>(left_motor_speed));
-      left_motor_.run(BACKWARD);
-      left_motor2_.setSpeed(static_cast<uint8_t>(left_motor_speed));
-      left_motor2_.run(BACKWARD);
-    }
+    set_left_wheels_speed(left_motor_speed);
   }
-  if (right_pid_controller_.enabled()) {
-    bool forward = true;
-    if (right_motor_speed < kMinSpeed) {
-      right_motor_speed = -right_motor_speed;
-      forward = false;
-    }
-    if (right_motor_speed > kMaxSpeed) {
-      right_motor_speed = kMaxSpeed;
-    }
 
-    // The motor speed is controlled by sending a PWM wave to the corresponding pin.
-    if (forward) {
-      right_motor_.setSpeed(static_cast<uint8_t>(right_motor_speed));
-      right_motor_.run(FORWARD);
-      right_motor2_.setSpeed(static_cast<uint8_t>(right_motor_speed));
-      right_motor2_.run(FORWARD);
-    } else {
-      right_motor_.setSpeed(static_cast<uint8_t>(right_motor_speed));
-      right_motor_.run(BACKWARD);
-      right_motor2_.setSpeed(static_cast<uint8_t>(right_motor_speed));
-      right_motor2_.run(BACKWARD);
-    }
+  if (right_pid_controller_.enabled()) {
+    set_right_wheels_speed(right_motor_speed);
   }
 }
 
@@ -345,15 +305,46 @@ void App::cmd_set_motors_pwm_cb(int argc, char** argv) {
   Serial.println(right_motor_pwm);
   left_pid_controller_.disable();
   right_pid_controller_.disable();
-  left_motor_.setSpeed(static_cast<uint8_t>(left_motor_pwm));
-  right_motor_.setSpeed(static_cast<uint8_t>(right_motor_pwm));
-  left_motor2_.setSpeed(static_cast<uint8_t>(left_motor_pwm));
-  right_motor2_.setSpeed(static_cast<uint8_t>(right_motor_pwm));
-  left_motor_.run(FORWARD);
-  right_motor_.run(FORWARD);
-  left_motor2_.run(FORWARD);
-  right_motor2_.run(FORWARD);
+  // spin motors
+  set_left_wheels_speed(left_motor_pwm);
+  set_right_wheels_speed(right_motor_pwm);
   Serial.println("OK");
+}
+
+static void App::set_left_wheels_speed(int speed) {
+  static constexpr int kMaxSpeed{255};
+  uint8_t direction_flag = FORWARD;
+  if (speed < 0) {
+    speed = -speed;
+    direction_flag = BACKWARD;
+  }
+  if (speed > kMaxSpeed) {
+    speed = kMaxSpeed;
+  }
+
+  // set same speeds for left motors 
+  left_motor_.setSpeed(static_cast<uint8_t>(speed));
+  left_motor2_.setSpeed(static_cast<uint8_t>(speed));
+  left_motor_.run(direction_flag);
+  left_motor2_.run(direction_flag);
+}
+
+static void App::set_right_wheels_speed(int speed) {
+  static constexpr int kMaxSpeed{255};
+  uint8_t direction_flag = FORWARD;
+  if (speed < 0) {
+    speed = -speed;
+    direction_flag = BACKWARD;
+  }
+  if (speed > kMaxSpeed) {
+    speed = kMaxSpeed;
+  }
+
+  // set same speeds for right motors 
+  right_motor_.setSpeed(static_cast<uint8_t>(speed));
+  right_motor2_.setSpeed(static_cast<uint8_t>(speed));
+  right_motor_.run(direction_flag);
+  right_motor2_.run(direction_flag);
 }
 
 void App::cmd_set_pid_tuning_gains_cb(int argc, char** argv) {

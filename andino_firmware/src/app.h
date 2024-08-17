@@ -138,6 +138,13 @@ class App {
 
   /// Tracks whether there is an IMU sensor connected.
   static bool is_imu_connected;
+
+  /// Limits wheel speeds and spins right hand side wheels.
+  static void set_right_wheels_speed(int speed);
+
+  /// Limits wheel speeds and spins left hand side wheels.
+  static void set_left_wheels_speed(int speed);
+
 };
 
 }  // namespace andino
