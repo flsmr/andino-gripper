@@ -86,10 +86,8 @@ struct Commands {
   static constexpr const char* kGetIsImuConnected{"h"};
   /// @brief Reads the encoders tick count values and IMU sensor data.
   static constexpr const char* kReadEncodersAndImu{"i"};
-  /// @brief Lowers/raises the gripper.
-  static constexpr const char* kReadEncodersAndImu{"g"};
-  /// @brief Opens/closes the gripper to grab an object.
-  static constexpr const char* kReadEncodersAndImu{"c"};
+  /// @brief Operates the gripper arm.
+  static constexpr const char* kControlGripper{"g"};
 };
 
 }  // namespace andino

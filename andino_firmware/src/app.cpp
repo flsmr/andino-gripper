@@ -162,6 +162,7 @@ void App::setup() {
   shell_.register_command(Commands::kSetPidsTuningGains, cmd_set_pid_tuning_gains_cb);
   shell_.register_command(Commands::kGetIsImuConnected, cmd_get_is_imu_connected_cb);
   shell_.register_command(Commands::kReadEncodersAndImu, cmd_read_encoders_and_imu_cb);
+  shell_.register_command(Commands::kControlGripper, cmd_set_gripper);
 
   // Initialize IMU sensor.
   if (bno055_imu_.begin()) {
@@ -420,6 +421,11 @@ void App::cmd_read_encoders_and_imu_cb(int, char**) {
   Serial.print(linear_acceleration.y());
   Serial.print(" ");
   Serial.print(linear_acceleration.z());
+}
+
+void App::cmd_set_gripper(int, char**) {
+  // TODO
+  Serial.print("Set Gripper");
 }
 
 }  // namespace andino

@@ -93,6 +93,9 @@ class App {
   /// Callback method for the `Commands::kReadEncodersAndImu` command.
   static void cmd_read_encoders_and_imu_cb(int argc, char** argv);
 
+  /// Callback method for the `Commands::kControlGripper` command.
+  static void cmd_set_gripper(int argc, char** argv);
+
   /// Serial stream.
   static SerialStreamArduino serial_stream_;
 
