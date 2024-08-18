@@ -176,8 +176,8 @@ void App::setup() {
   }
 
   // Initialize servos
-  arm_.attach(9);
-  gripper_.attach(10);
+  arm_.attach(10);
+  gripper_.attach(9);
 }
 
 void App::loop() {
@@ -437,10 +437,15 @@ void App::cmd_set_gripper(int argc, char** argv) {
     return;
   }
 
-  const int arm_angle = atoi(argv[1]);
-  const int gripper_open_pct = atoi(argv[2]);
+  int arm_extension_pct = atoi(argv[1]);
+  int gripper_open_pct = atoi(argv[2]);
 
   // gripper needs to be between 128 (open) and 88 (closed)
+  arm_extension_pct = min(max(arm_extension_pct, 0), 100);
+  gripper_open_pct = min(max(gripper_open_pct, 0), 100);
+
+  // gripper needs to be between 128 (open) and 88 (closed)
+  const int arm_angle = int(20 + (170 - 20) * arm_extension_pct / 100);
   const int gripper_open_angle = int(128 - (128 - 88) * gripper_open_pct / 100);
 
   // Serial print arm angle and gripper open angle, in one line
