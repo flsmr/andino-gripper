@@ -30,6 +30,7 @@
 #pragma once
 
 #include <Adafruit_BNO055.h>
+#include <Servo.h>
 
 #include "digital_out_arduino.h"
 #include "encoder.h"
@@ -115,6 +116,10 @@ class App {
   // static PwmOutArduino right_motor_backward_pwm_out_;
   static MS_DCMotor right_motor_;
   static MS_DCMotor right_motor2_;
+
+  // servos
+  static Servo arm_;
+  static Servo gripper_;
 
   /// Left wheel encoder.
   static InterruptInArduino left_encoder_channel_a_interrupt_in_;

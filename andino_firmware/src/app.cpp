@@ -69,6 +69,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <utility/imumaths.h>
+#include <Servo.h>
 
 #include "commands.h"
 #include "constants.h"
@@ -109,6 +110,10 @@ MS_DCMotor App::left_motor2_(2);
 //                         &right_motor_backward_pwm_out_);
 MS_DCMotor App::right_motor_(3);
 MS_DCMotor App::right_motor2_(4);
+
+// Add Servos
+Servo App::arm_;
+Servo App::gripper_;
 
 InterruptInArduino App::left_encoder_channel_a_interrupt_in_(Hw::kLeftEncoderChannelAGpioPin);
 InterruptInArduino App::left_encoder_channel_b_interrupt_in_(Hw::kLeftEncoderChannelBGpioPin);
@@ -169,6 +174,10 @@ void App::setup() {
     bno055_imu_.setExtCrystalUse(true);
     is_imu_connected = true;
   }
+
+  // Initialize servos
+  arm_.attach(9);
+  gripper_.attach(10);
 }
 
 void App::loop() {
@@ -423,9 +432,28 @@ void App::cmd_read_encoders_and_imu_cb(int, char**) {
   Serial.print(linear_acceleration.z());
 }
 
-void App::cmd_set_gripper(int, char**) {
-  // TODO
-  Serial.print("Set Gripper");
+void App::cmd_set_gripper(int argc, char** argv) {
+
+void App::cmd_set_motors_speed_cb(int argc, char** argv) {
+  if (argc < 3) {
+    return;
+  }
+
+  const int arm_angle = atoi(argv[1]);
+  const int gripper_open_pct = atoi(argv[2]);
+
+  // gripper needs to be between 128 (open) and 88 (closed)
+  const int gripper_open_angle = int(128 - (128 - 88) * gripper_open_pct / 100);
+
+  // Serial print arm angle and gripper open angle, in one line
+  Serial.print("Arm angle: ");
+  Serial.print(arm_angle);
+  Serial.print(" ");
+  Serial.print("Gripper open angle: ");
+  Serial.println(gripper_open_angle);
+
+  arm_.write(arm_angle);
+  gripper_.write(gripper_open_angle);
 }
 
 }  // namespace andino
