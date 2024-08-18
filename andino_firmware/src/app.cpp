@@ -433,8 +433,6 @@ void App::cmd_read_encoders_and_imu_cb(int, char**) {
 }
 
 void App::cmd_set_gripper(int argc, char** argv) {
-
-void App::cmd_set_motors_speed_cb(int argc, char** argv) {
   if (argc < 3) {
     return;
   }
